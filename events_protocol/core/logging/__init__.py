@@ -53,7 +53,7 @@ class JsonLogger(logging.LoggerAdapter):
                 userId=event_context.user_id,
                 operation=event_context.event_name,
                 logger=self.klass,
-                loggerName=self.logger.name
+                loggerName=self.logger.name,
             )
 
             extra = kwargs.pop("extra", None)
@@ -68,11 +68,3 @@ class JsonLogger(logging.LoggerAdapter):
                 kwargs["exc_info"] = False
             msg = json.dumps(_msg)
             self.logger.log(level, msg, *args, **kwargs)
-
-
-class LoggableMixin:
-    logger = JsonLogger()
-
-    def __new__(cls, *args, **kwargs):
-        cls.logger = JsonLogger(cls)
-        return super().__new__(cls)
