@@ -37,6 +37,12 @@ def _get_logger():
 
 
 class JsonLogger(logging.LoggerAdapter):
+    version: str = ""
+
+    @classmethod
+    def set_version(cls, version: str):
+        cls.version = version
+
     def __init__(self, klass=None):
         self.logger = _get_logger()
         self.klass = _get_klass_name(klass)
@@ -46,24 +52,25 @@ class JsonLogger(logging.LoggerAdapter):
             event_context = EventContextHolder.get()
             _msg = dict(
                 severity=logging.getLevelName(level),
-                logMessage=msg,
-                eventId=event_context.id,
-                flowID=event_context.flow_id,
-                eventVersion=event_context.event_version,
-                userId=event_context.user_id,
-                operation=event_context.event_name,
-                logger=self.klass,
-                loggerName=self.logger.name,
+                LogMessage=msg,
+                EventId=event_context.id,
+                FlowID=event_context.flow_id,
+                EventVersion=event_context.event_version,
+                UserId=event_context.user_id,
+                Operation=event_context.event_name,
+                Logger=self.klass,
+                LoggerName=self.logger.name,
+                ApplicationVersion=self.version,
             )
 
             extra = kwargs.pop("extra", None)
             if extra:
-                _msg["extra"] = extra
+                _msg["Extra"] = extra
             if level == logging.ERROR and kwargs.get("exc_info"):
                 args = tuple()
                 fmt = logging.Formatter()
                 _exc = sys.exc_info()
-                _msg["stackTrace"] = fmt.formatException(_exc).split("\n")
+                _msg["StackTrace"] = fmt.formatException(_exc).split("\n")
 
                 kwargs["exc_info"] = False
             msg = json.dumps(_msg)
