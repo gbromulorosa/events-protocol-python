@@ -7,6 +7,7 @@ import typing
 from logging.handlers import QueueHandler, QueueListener
 
 from events_protocol.core.context import EventContextHolder
+from datetime import datetime as dt
 
 
 def _get_klass_name(klass: typing.Any) -> str:
@@ -37,7 +38,7 @@ def _get_logger():
 
 
 class JsonLogger(logging.LoggerAdapter):
-    version: str = ""
+    version: str = "NOTDEFINED"
 
     @classmethod
     def set_version(cls, version: str):
@@ -52,25 +53,25 @@ class JsonLogger(logging.LoggerAdapter):
             event_context = EventContextHolder.get()
             _msg = dict(
                 severity=logging.getLevelName(level),
-                LogMessage=msg,
-                EventId=event_context.id,
+                logmessage=msg,
+                EventID=event_context.id,
                 FlowID=event_context.flow_id,
-                EventVersion=event_context.event_version,
                 UserId=event_context.user_id,
-                Operation=event_context.event_name,
-                Logger=self.klass,
+                Operation="{}:v{}".format(event_context.event_name, event_context.event_version),
+                logger=self.klass,
                 LoggerName=self.logger.name,
+                logdate=dt.utcnow().isoformat(),
                 ApplicationVersion=self.version,
             )
 
             extra = kwargs.pop("extra", None)
             if extra:
-                _msg["Extra"] = extra
+                _msg["extra"] = extra
             if level == logging.ERROR and kwargs.get("exc_info"):
                 args = tuple()
                 fmt = logging.Formatter()
                 _exc = sys.exc_info()
-                _msg["StackTrace"] = fmt.formatException(_exc).split("\n")
+                _msg["stackTrace"] = fmt.formatException(_exc)
 
                 kwargs["exc_info"] = False
             msg = json.dumps(_msg)
